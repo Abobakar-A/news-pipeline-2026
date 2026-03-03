@@ -45,18 +45,24 @@ During the development, we solved several critical engineering challenges:
     cd news-pipeline-2026
     ```
 
-2.  **Initialize the Environment:**
-    (This step prepares the database and creates the admin user)
+2.  **Environment Configuration (Security):**
+    This project uses environment variables to keep credentials secure. For security, all sensitive credentials in this repository are **masked**.
+    * Create a `.env` file in the root directory.
+    * Add your API keys and database passwords to the `.env` file.
+    *(Refer to `.env.example` for the required keys and structure).*
+
+3.  **Initialize the Environment:**
+    (This step prepares the metadata database and creates the admin user)
     ```bash
     docker-compose up airflow-init
     ```
 
-3.  **Launch All Services:**
+4.  **Launch All Services:**
     ```bash
     docker-compose up -d
     ```
 
-4.  **Access the Dashboard:**
+5.  **Access the Dashboards:**
     * **Airflow UI:** [http://localhost:8080](http://localhost:8080) (User: `admin` / Pass: `admin`)
     * **MinIO UI:** [http://localhost:9001](http://localhost:9001)
     * **Mongo Express:** [http://localhost:8081](http://localhost:8081)
@@ -68,10 +74,10 @@ During the development, we solved several critical engineering challenges:
 * [x] Integrate Airflow containers to run the project.
 * [x] Add a **dbt layer** for incremental transformations (MongoDB to Postgres flow).
 * [x] Professional README documenting challenges and architecture.
-* [x] Implement CI/CD for Docker, Terraform, and Python code (Next Step ⚡).
+* [x] Implement **CI/CD** for Docker and Python code using GitHub Actions.
 
 ---
 
 ### 📍 Project Snapshot (March 2026)
 * **Status:** Fully Functional End-to-End Pipeline.
-* **Last Update:** Successfully processed 77 articles through the incremental dbt model.
+* **Last Update:** Successfully implemented security masking and automated CI/CD workflows.
