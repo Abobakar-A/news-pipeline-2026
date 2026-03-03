@@ -1,83 +1,72 @@
-# 📰 News Data Pipeline 2026 (Airflow + dbt + Docker)
+# 📰 News Data Pipeline & AI Recommender 2026 (Airflow + dbt + ML)
 
-This project is a modern **Data Engineering Pipeline** that automates the collection, storage, and transformation of news articles using a multi-layered architecture. It is designed to handle raw data from APIs and transform it into a clean, query-ready format for analytics.
-
-
+This project is a modern **End-to-End Data Engineering Pipeline** that automates the collection, storage, and intelligent analysis of news articles. Beyond ingestion, it features an **AI-powered Recommendation Engine** that suggests related news using Machine Learning.
 
 ---
 
 ## 🏗️ Architecture & Tools
 
-* **Orchestration:** Apache Airflow (Dockerized) to manage task dependencies.
-* **Ingestion:** Python-based ingestion engine fetching data from News APIs.
-* **Multi-Tier Storage Strategy:**
-    * **NoSQL (MongoDB):** For flexible, raw JSON storage of API responses.
-    * **Object Storage (MinIO):** For long-term archiving and data lake simulation.
-    * **RDBMS (PostgreSQL):** As a structured staging area for relational data.
-* **Transformation Layer:** **dbt (data build tool)** for incremental SQL modeling and data cleaning.
-* **Infrastructure:** Docker Compose for local development and container orchestration.
+* **Orchestration:** Apache Airflow (Dockerized) to manage complex task dependencies.
+* **Ingestion:** Python-based engine fetching real-time data from News APIs.
+* **Multi-Tier Storage:**
+    * **NoSQL (MongoDB):** Raw JSON storage for flexible API responses.
+    * **Object Storage (MinIO):** Data lake simulation for long-term archiving.
+    * * **RDBMS (PostgreSQL):** Structured warehouse for clean data.
+* **Transformation:** **dbt (data build tool)** for incremental SQL modeling in the `analytics` schema.
+* **AI Layer:** **Recommendation Service** using `scikit-learn` (TF-IDF & Cosine Similarity) to find related articles.
+
+
 
 ---
 
 ## 🛠️ Challenges & Solutions (Technical Triumphs)
 
-During the development, we solved several critical engineering challenges:
+During development, we solved several high-level engineering hurdles:
 
-1.  **Dependency Conflict (The OpenLineage Issue):**
-    * **Problem:** Encountered a `RuntimeError` because `apache-airflow` v2.10.5 was incompatible with the default `openlineage` provider v1.0.2.
-    * **Solution:** Customized the `Dockerfile` to force the installation of `apache-airflow-providers-openlineage >= 1.8.0`, ensuring compatibility and a stable environment.
+1.  **ML Environment in Docker:**
+    * **Problem:** The recommendation service lacked mathematical libraries like `scikit-learn`.
+    * **Solution:** Customized the `Dockerfile` to include `gcc` and `libpq-dev`, and pre-installed `scikit-learn` and `pandas` to ensure the AI engine runs natively in a containerized environment.
 
-2.  **Container Networking & Host Resolution:**
-    * **Problem:** The `dbt` container failed to communicate with the `warehouse_db` container due to a hostname mismatch (`Temporary failure in name resolution`).
-    * **Solution:** Reconfigured the `profiles.yml` to use the correct Docker internal service name, aligning the dbt profile with the Docker Compose network bridge.
+2.  **Cross-Schema Data Access:**
+    * **Problem:** The AI service couldn't find the processed tables because `dbt` creates them in an `analytics` schema by default, while Python looks in `public`.
+    * **Solution:** Refactored the SQLAlchemy queries to explicitly reference `analytics.clean_articles`, enabling seamless communication between the warehouse and the ML model.
 
-3.  **Incremental Transformation Logic:**
-    * **Problem:** Processing all data from MongoDB to Postgres every time is inefficient.
-    * **Solution:** Built a **dbt Incremental Model** that only processes new articles based on unique identifiers, significantly reducing compute time and resource usage.
+3.  **The OpenLineage Conflict:**
+    * **Problem:** `RuntimeError` due to version mismatch between Airflow 2.7.1 and OpenLineage.
+    * **Solution:** Forced `apache-airflow-providers-openlineage >= 1.8.0` in the build process to stabilize the metadata tracking.
+
+4.  **Incremental Transformation Logic:**
+    * **Problem:** Inefficient full-refresh processing of MongoDB data.
+    * **Solution:** Implemented **dbt Incremental Models** that only process new records, drastically reducing latency as the dataset grows.
 
 ---
 
 ## 🚀 How to Run
 
-1.  **Clone the Repository:**
-    ```bash
-    git clone <your-repo-link>
-    cd news-pipeline-2026
-    ```
-
-2.  **Environment Configuration (Security):**
-    This project uses environment variables to keep credentials secure. For security, all sensitive credentials in this repository are **masked**.
-    * Create a `.env` file in the root directory.
-    * Add your API keys and database passwords to the `.env` file.
-    *(Refer to `.env.example` for the required keys and structure).*
-
-3.  **Initialize the Environment:**
-    (This step prepares the metadata database and creates the admin user)
+1.  **Setup Environment:**
+    * Create a `.env` file with your `NEWS_API_KEY` and database credentials.
+2.  **Initialize & Build:**
     ```bash
     docker-compose up airflow-init
+    docker-compose up -d --build
     ```
-
-4.  **Launch All Services:**
+3.  **Verify AI Engine:**
     ```bash
-    docker-compose up -d
+    docker logs -f recommendation_service
     ```
-
-5.  **Access the Dashboards:**
-    * **Airflow UI:** [http://localhost:8080](http://localhost:8080) (User: `admin` / Pass: `admin`)
-    * **MinIO UI:** [http://localhost:9001](http://localhost:9001)
-    * **Mongo Express:** [http://localhost:8081](http://localhost:8081)
 
 ---
 
 ## 📈 Project Roadmap & Achievements
 
-* [x] Integrate Airflow containers to run the project.
-* [x] Add a **dbt layer** for incremental transformations (MongoDB to Postgres flow).
-* [x] Professional README documenting challenges and architecture.
-* [x] Implement **CI/CD** for Docker and Python code using GitHub Actions.
+* [x] Integrate Airflow & Docker orchestration.
+* [x] Implement **dbt Incremental Layer** (Mongo to Postgres).
+* [x] **AI Integration:** Build a Content-Based Recommender Service.
+* [x] Multi-tier storage (MinIO, MongoDB, Postgres).
+* [ ] Implement **Terraform** for Cloud Infrastructure (Next Step).
+* [ ] CI/CD via GitHub Actions for automated testing.
 
 ---
-
 ### 📍 Project Snapshot (March 2026)
-* **Status:** Fully Functional End-to-End Pipeline.
-* **Last Update:** Successfully implemented security masking and automated CI/CD workflows.
+* **Status:** Production-Ready Pipeline with AI capabilities.
+* **Key Achievement:** Successfully processed 76+ articles with real-time similarity scoring.

@@ -3,6 +3,7 @@ pandas
 polars
 requests
 python-dotenv
+scikit-learn
 
 # قواعد البيانات (نستخدم النسخة الجاهزة لتجنب أخطاء البناء)
 psycopg2-binary==2.9.9

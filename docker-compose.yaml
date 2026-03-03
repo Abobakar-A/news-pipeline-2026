@@ -122,6 +122,24 @@ services:
       - news_network
     command: scheduler
 
+  # 8. خدمة التوصية (Recommendation Service)
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: news-recommender:latest
+    container_name: recommendation_service
+    volumes:
+      - ./recommendation_service:/app
+    environment:
+      - DATABASE_URL=postgresql://airflow:airflow@warehouse-db:5432/airflow
+    depends_on:
+      - warehouse-db 
+    networks:
+      - news_network  
+    command: python /app/recommender.py
+
+# تعريف الشبكة في المستوى الرئيسي
 networks:
   news_network:
     driver: bridge

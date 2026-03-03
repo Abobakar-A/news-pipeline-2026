@@ -8,10 +8,12 @@ RUN apt-get update && \
 
 USER airflow
 
-# تحديث pip وتثبيت المكتبات مع تحديد إصدار متوافق من openlineage
+# تحديث pip وتثبيت المكتبات (تم إضافة scikit-learn هنا)
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
     pandas polars requests python-dotenv \
+    scikit-learn \
+    sqlalchemy \
     psycopg2-binary==2.9.9 \
     pymongo \
     apache-airflow-providers-mongo \

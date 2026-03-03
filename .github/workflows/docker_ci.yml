@@ -1,4 +1,4 @@
-name: Docker & Python CI
+name: News Pipeline CI/CD
 
 on:
   push:
@@ -7,27 +7,39 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-and-test:
+  quality-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Install Linting Tools
         run: |
           pip install flake8
-          # هنا يمكننا إضافة اختبارات الوحدات (Unit Tests) لاحقاً
-
-      - name: Lint with flake8
+          
+      - name: Lint Python Code
         run: |
-          # التوقف إذا كان هناك أخطاء برمجية
+          # فحص كود محرك التوصية والـ DAGs
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - name: Build Docker Image
+  build-containers:
+    needs: quality-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Recommender Service
         run: |
-          docker build -t news-pipeline:latest .
+          docker build -t news-recommender:latest ./recommendation_service
+
+      - name: Build Airflow Custom Image
+        run: |
+          docker build -t custom-airflow:latest .
+
+      # خطوة اختيارية: التأكد من أن docker-compose سليم
+      - name: Check Docker Compose Config
+        run: docker-compose config
