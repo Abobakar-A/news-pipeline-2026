@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  # 1. قاعدة بيانات نظام Airflow (Metadata Only)
+  airflow-db:
+    image: postgres:13
+    container_name: airflow_db
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    networks:
+      - news_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. مستودع البيانات (The Data Warehouse - dbt will work here)
+  warehouse-db:
+    image: postgres:13
+    container_name: warehouse_db
+    env_file: .env
+    ports:
+      - "5435:5432"
+    networks:
+      - news_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. قاعدة بيانات MongoDB (Raw Data)
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    env_file: .env
+    ports:
+      - "27017:27017"
+    networks:
+      - news_network
+
+  # 4. مخزن الملفات MinIO (Object Storage)
+  minio:
+    image: minio/minio
+    container_name: minio
+    env_file: .env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    networks:
+      - news_network
+
+  # 5. تهيئة Airflow (Init)
+  airflow-init:
+    build: .
+    container_name: airflow_init
+    env_file: .env
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - PYTHONPATH=/opt/airflow
+    networks:
+      - news_network
+    command: >
+      bash -c "airflow db upgrade &&
+      airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.com --password admin"
+
+  # 6. واجهة Airflow Webserver
+  airflow-webserver:
+    build: .
+    container_name: airflow_webserver
+    restart: always
+    env_file: .env
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - PYTHONPATH=/opt/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./src:/opt/airflow/src
+      - ./dbt_project:/opt/airflow/dbt_project
+    ports:
+      - "8080:8080"
+    networks:
+      - news_network
+    command: webserver
+
+  # 7. المجدول Airflow Scheduler
+  airflow-scheduler:
+    build: .
+    container_name: airflow_scheduler
+    restart: always
+    env_file: .env
+    depends_on:
+      airflow-db:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - PYTHONPATH=/opt/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./src:/opt/airflow/src
+      - ./dbt_project:/opt/airflow/dbt_project
+    networks:
+      - news_network
+    command: scheduler
+
+networks:
+  news_network:
+    driver: bridge

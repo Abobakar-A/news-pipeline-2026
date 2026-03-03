@@ -1,0 +1,12 @@
+news_profile:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: warehouse_db
+      user: "{{ env_var('POSTGRES_USER') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD') }}"
+      port: 5432
+      dbname: "{{ env_var('POSTGRES_DB') }}"
+      schema: analytics
+      threads: 1

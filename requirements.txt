@@ -1,0 +1,19 @@
+# الأساسيات
+pandas
+polars
+requests
+python-dotenv
+
+# قواعد البيانات (نستخدم النسخة الجاهزة لتجنب أخطاء البناء)
+psycopg2-binary==2.9.9
+sqlalchemy
+pymongo
+
+# Airflow Providers
+apache-airflow-providers-mongo
+apache-airflow-providers-amazon
+apache-airflow-providers-openlineage>=1.8.0
+
+# dbt
+dbt-core==1.8.0
+dbt-postgres==1.8.0

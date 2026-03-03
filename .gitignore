@@ -1,0 +1,45 @@
+# --- Docker & OS ---
+.DS_Store
+*.swp
+*.log
+.docker/
+docker-compose.override.yml
+
+# --- Python & Airflow ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.venv
+logs/           # مهم: سجلات الأيرفلو قد تصبح ضخمة جداً
+airflow.db
+airflow-webserver.pid
+standalone_admin_password.txt
+
+# --- dbt ---
+target/         # مهم: المخرجات المؤقتة لـ dbt
+dbt_packages/   # لا ترفع المكتبات، dbt deps ستقوم بتحميلها
+dbt_modules/
+logs/
+
+# --- Databases & Data ---
+# لا ترفع بيانات الحاويات (المجلدات التي تربطها بالـ Volumes)
+postgres_data/
+mongo_data/
+minio_data/
+*.json
+*.csv
+
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl
+
+# --- Secrets ---
+secrets/
+*.key
+*.pem

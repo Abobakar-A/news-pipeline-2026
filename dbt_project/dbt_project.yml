@@ -1,0 +1,23 @@
+name: 'news_transformations'
+version: '1.0.0'
+config-version: 2
+
+profile: 'news_profile' # هذا الاسم سنستخدمه في ملف profiles.yml
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  news_transformations:
+    staging:
+      +materialized: view # سنبدأ بإنشاء Views أولاً
+    marts:
+      +materialized: table # الجداول النهائية ستكون Tables

@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw_news
+    database: airflow
+    schema: public
+    tables:
+      - name: staging_news
+      
