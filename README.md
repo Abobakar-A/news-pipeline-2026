@@ -4,6 +4,13 @@ This project is a modern **End-to-End Data Engineering Pipeline** that automates
 
 ---
 
+## 💡 The Value: From Raw Data to Personalized Experiences
+This project doesn't just "move" data; it transforms scattered internet news into a **Smart Knowledge Hub**.
+* **For Users:** It provides a Netflix-like experience for news, discovering articles based on personal interest.
+* **For Businesses:** It drives user engagement by automating content discovery and delivering high-quality, cleaned data for downstream applications (Dashboards, Mobile Apps, or AI Bots).
+
+---
+
 ## 🏗️ Architecture & Tools
 
 * **Orchestration:** Apache Airflow (Dockerized) to manage complex task dependencies.
@@ -11,11 +18,9 @@ This project is a modern **End-to-End Data Engineering Pipeline** that automates
 * **Multi-Tier Storage:**
     * **NoSQL (MongoDB):** Raw JSON storage for flexible API responses.
     * **Object Storage (MinIO):** Data lake simulation for long-term archiving.
-    * * **RDBMS (PostgreSQL):** Structured warehouse for clean data.
+    * **RDBMS (PostgreSQL):** Structured warehouse for clean data.
 * **Transformation:** **dbt (data build tool)** for incremental SQL modeling in the `analytics` schema.
 * **AI Layer:** **Recommendation Service** using `scikit-learn` (TF-IDF & Cosine Similarity) to find related articles.
-
-
 
 ---
 
@@ -28,7 +33,7 @@ During development, we solved several high-level engineering hurdles:
     * **Solution:** Customized the `Dockerfile` to include `gcc` and `libpq-dev`, and pre-installed `scikit-learn` and `pandas` to ensure the AI engine runs natively in a containerized environment.
 
 2.  **Cross-Schema Data Access:**
-    * **Problem:** The AI service couldn't find the processed tables because `dbt` creates them in an `analytics` schema by default, while Python looks in `public`.
+    * **Problem:** The AI service couldn't find the processed tables because `dbt` creates them in an `analytics` schema by default.
     * **Solution:** Refactored the SQLAlchemy queries to explicitly reference `analytics.clean_articles`, enabling seamless communication between the warehouse and the ML model.
 
 3.  **The OpenLineage Conflict:**
@@ -63,10 +68,11 @@ During development, we solved several high-level engineering hurdles:
 * [x] Implement **dbt Incremental Layer** (Mongo to Postgres).
 * [x] **AI Integration:** Build a Content-Based Recommender Service.
 * [x] Multi-tier storage (MinIO, MongoDB, Postgres).
+* [x] **CI/CD via GitHub Actions** for automated testing and builds.
 * [ ] Implement **Terraform** for Cloud Infrastructure (Next Step).
-* [ ] CI/CD via GitHub Actions for automated testing.
 
 ---
+
 ### 📍 Project Snapshot (March 2026)
 * **Status:** Production-Ready Pipeline with AI capabilities.
 * **Key Achievement:** Successfully processed 76+ articles with real-time similarity scoring.
