@@ -68,7 +68,7 @@ During the development, we solved several critical engineering challenges:
 * [x] Integrate Airflow containers to run the project.
 * [x] Add a **dbt layer** for incremental transformations (MongoDB to Postgres flow).
 * [x] Professional README documenting challenges and architecture.
-* [ ] Implement CI/CD for Docker, Terraform, and Python code (Next Step ⚡).
+* [x] Implement CI/CD for Docker, Terraform, and Python code (Next Step ⚡).
 
 ---
 
