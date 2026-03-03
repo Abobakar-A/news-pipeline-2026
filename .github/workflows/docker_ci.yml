@@ -7,39 +7,29 @@ on:
     branches: [ main, master ]
 
 jobs:
-  quality-check:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.8'
 
-      - name: Install Linting Tools
+      - name: Install dependencies
         run: |
           pip install flake8
-          
-      - name: Lint Python Code
+          # يمكنك إضافة pytest هنا مستقبلاً
+
+      - name: Lint with flake8
         run: |
-          # فحص كود محرك التوصية والـ DAGs
+          # التوقف إذا كان هناك أخطاء برمجية قاتلة
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-  build-containers:
-    needs: quality-check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Build Recommender Service
+      - name: Build Recommender Image
         run: |
-          docker build -t news-recommender:latest ./recommendation_service
-
-      - name: Build Airflow Custom Image
-        run: |
-          docker build -t custom-airflow:latest .
-
-      # خطوة اختيارية: التأكد من أن docker-compose سليم
-      - name: Check Docker Compose Config
-        run: docker-compose config
+          # نستخدم -f لأن الـ Dockerfile في الـ Root
+          # والنقطة (.) تعني أننا نستخدم المجلد الحالي كـ Context
+          docker build -t news-recommender:latest -f Dockerfile .
