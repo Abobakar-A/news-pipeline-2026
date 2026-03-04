@@ -1,18 +1,20 @@
 FROM apache/airflow:2.7.1
 
 USER root
-# تثبيت المكتبات اللازمة للبناء
+# تثبيت المكتبات اللازمة للبناء (gcc و libpq-dev ضرورية لـ psycopg2 و scikit-learn)
 RUN apt-get update && \
     apt-get install -y libpq-dev gcc && \
     apt-get clean
 
 USER airflow
 
-# تحديث pip وتثبيت المكتبات (تم إضافة scikit-learn هنا)
+# تحديث pip وتثبيت المكتبات
+# تم إضافة streamlit هنا ليكون متاحاً في الصورة الأساسية للمشروع
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
     pandas polars requests python-dotenv \
     scikit-learn \
+    streamlit \
     sqlalchemy \
     psycopg2-binary==2.9.9 \
     pymongo \

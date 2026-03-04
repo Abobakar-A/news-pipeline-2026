@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. قاعدة بيانات نظام Airflow (Metadata Only)
+  # 1. قاعدة بيانات نظام Airflow
   airflow-db:
     image: postgres:13
     container_name: airflow_db
@@ -17,7 +17,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. مستودع البيانات (The Data Warehouse - dbt will work here)
+  # 2. مستودع البيانات (Data Warehouse)
   warehouse-db:
     image: postgres:13
     container_name: warehouse_db
@@ -27,7 +27,7 @@ services:
     networks:
       - news_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,7 +42,7 @@ services:
     networks:
       - news_network
 
-  # 4. مخزن الملفات MinIO (Object Storage)
+  # 4. مخزن الملفات MinIO
   minio:
     image: minio/minio
     container_name: minio
@@ -54,7 +54,7 @@ services:
     networks:
       - news_network
 
-  # 5. تهيئة Airflow (Init)
+  # 5. تهيئة Airflow
   airflow-init:
     build: .
     container_name: airflow_init
@@ -65,7 +65,6 @@ services:
     environment:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - PYTHONPATH=/opt/airflow
     networks:
       - news_network
     command: >
@@ -83,7 +82,7 @@ services:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
-    environment:
+    environment: &airflow-common-env
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - PYTHONPATH=/opt/airflow
@@ -109,10 +108,7 @@ services:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
-    environment:
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - PYTHONPATH=/opt/airflow
+    environment: *airflow-common-env
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -122,24 +118,24 @@ services:
       - news_network
     command: scheduler
 
-  # 8. خدمة التوصية (Recommendation Service)
-  recommendation-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: news-recommender:latest
-    container_name: recommendation_service
+  # 8. واجهة المستخدم التفاعلية (Streamlit Dashboard)
+  dashboard:
+    build: .
+    container_name: news_dashboard
+    entrypoint: [] 
     volumes:
-      - ./recommendation_service:/app
-    environment:
-      - DATABASE_URL=postgresql://airflow:airflow@warehouse-db:5432/airflow
+      - ./dashboard:/opt/airflow/dashboard
+    working_dir: /opt/airflow/dashboard
+    ports:
+      - "8501:8501"
+    env_file: .env
+    # نستخدم python -m streamlit لضمان التشغيل الصحيح من داخل البيئة
+    command: python -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0 --browser.gatherUsageStats false
     depends_on:
-      - warehouse-db 
+      warehouse-db:
+        condition: service_healthy
     networks:
-      - news_network  
-    command: python /app/recommender.py
-
-# تعريف الشبكة في المستوى الرئيسي
+      - news_network
 networks:
   news_network:
     driver: bridge
