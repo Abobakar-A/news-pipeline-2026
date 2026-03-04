@@ -8,6 +8,7 @@ This project is a modern **End-to-End Data Engineering Pipeline** that automates
 This project doesn't just "move" data; it transforms scattered internet news into a **Smart Knowledge Hub**.
 * **For Users:** It provides a Netflix-like experience for news, discovering articles based on personal interest.
 * **For Businesses:** It drives user engagement by automating content discovery and delivering high-quality, cleaned data for downstream applications (Dashboards, Mobile Apps, or AI Bots).
+* **Live Intelligence:** The system now provides **Executive Visibility** through a real-time dashboard, turning 83+ raw articles into actionable similarity insights.
 
 ---
 
@@ -21,6 +22,7 @@ This project doesn't just "move" data; it transforms scattered internet news int
     * **RDBMS (PostgreSQL):** Structured warehouse for clean data.
 * **Transformation:** **dbt (data build tool)** for incremental SQL modeling in the `analytics` schema.
 * **AI Layer:** **Recommendation Service** using `scikit-learn` (TF-IDF & Cosine Similarity) to find related articles.
+* **UI Layer:** **Streamlit** dashboard for real-time visualization and interaction with the AI engine.
 
 ---
 
@@ -28,19 +30,19 @@ This project doesn't just "move" data; it transforms scattered internet news int
 
 During development, we solved several high-level engineering hurdles:
 
-1.  **ML Environment in Docker:**
+1. **ML Environment in Docker:**
     * **Problem:** The recommendation service lacked mathematical libraries like `scikit-learn`.
     * **Solution:** Customized the `Dockerfile` to include `gcc` and `libpq-dev`, and pre-installed `scikit-learn` and `pandas` to ensure the AI engine runs natively in a containerized environment.
 
-2.  **Cross-Schema Data Access:**
-    * **Problem:** The AI service couldn't find the processed tables because `dbt` creates them in an `analytics` schema by default.
-    * **Solution:** Refactored the SQLAlchemy queries to explicitly reference `analytics.clean_articles`, enabling seamless communication between the warehouse and the ML model.
+2. **Cross-Schema Data Access & UI Sync:**
+    * **Problem:** The AI service and Streamlit couldn't find the processed tables due to schema naming mismatches (`published_at` vs `published_date`) and default `analytics` schema restrictions in dbt.
+    * **Solution:** Refactored SQLAlchemy queries and database connections to explicitly map to the **dbt-generated analytics schema**, ensuring 100% data flow accuracy from Warehouse to UI.
 
-3.  **The OpenLineage Conflict:**
+3. **The OpenLineage Conflict:**
     * **Problem:** `RuntimeError` due to version mismatch between Airflow 2.7.1 and OpenLineage.
     * **Solution:** Forced `apache-airflow-providers-openlineage >= 1.8.0` in the build process to stabilize the metadata tracking.
 
-4.  **Incremental Transformation Logic:**
+4. **Incremental Transformation Logic:**
     * **Problem:** Inefficient full-refresh processing of MongoDB data.
     * **Solution:** Implemented **dbt Incremental Models** that only process new records, drastically reducing latency as the dataset grows.
 
@@ -48,17 +50,15 @@ During development, we solved several high-level engineering hurdles:
 
 ## 🚀 How to Run
 
-1.  **Setup Environment:**
+1. **Setup Environment:**
     * Create a `.env` file with your `NEWS_API_KEY` and database credentials.
-2.  **Initialize & Build:**
+2. **Initialize & Build:**
     ```bash
     docker-compose up airflow-init
     docker-compose up -d --build
     ```
-3.  **Verify AI Engine:**
-    ```bash
-    docker logs -f recommendation_service
-    ```
+3. **Access Dashboard:**
+    * Open `http://localhost:8501` to interact with the News Hub and AI Recommender.
 
 ---
 
@@ -68,11 +68,12 @@ During development, we solved several high-level engineering hurdles:
 * [x] Implement **dbt Incremental Layer** (Mongo to Postgres).
 * [x] **AI Integration:** Build a Content-Based Recommender Service.
 * [x] Multi-tier storage (MinIO, MongoDB, Postgres).
+* [x] **Live Dashboard:** Deployed Streamlit for real-time data visualization.
 * [x] **CI/CD via GitHub Actions** for automated testing and builds.
 * [ ] Implement **Terraform** for Cloud Infrastructure (Next Step).
 
 ---
 
-### 📍 Project Snapshot (March 2026)
-* **Status:** Production-Ready Pipeline with AI capabilities.
-* **Key Achievement:** Successfully processed 76+ articles with real-time similarity scoring.
+### 📍 Project Snapshot (Updated: March 4, 2026)
+* **Status:** **Fully Operational Full-Stack Data Product.**
+* **Key Achievement:** Successfully processed **83+ articles** from **14 sources** with real-time similarity scoring and professional UI visualization.
