@@ -4,8 +4,6 @@ with raw_data as (
     select * from "airflow"."public"."staging_news"
     
     
-      where ingested_at > (select max(ingested_at) from "airflow"."analytics"."clean_articles")
-    
 ),
 
 cleaned_step as (

@@ -25,10 +25,10 @@ This project doesn't just "move" data; it transforms scattered internet news int
 * **Orchestration:** Apache Airflow (Dockerized) to manage complex task dependencies.
 * **Ingestion:** Python-based engine fetching real-time data from News APIs.
 * **Multi-Tier Storage:**
-    * **NoSQL (MongoDB):** Raw JSON storage for flexible API responses.
-    * **Object Storage (MinIO):** Data lake simulation for long-term archiving.
-    * **RDBMS (PostgreSQL):** Structured warehouse for clean data.
-* **Transformation:** **dbt (data build tool)** for incremental SQL modeling in the `analytics` schema.
+    * **Cloud NoSQL (MongoDB Atlas):** Primary landing zone for raw JSON data. Its schema-less nature is critical for handling varied API responses before structured processing.
+    * **Object Storage (MinIO):** Local S3-compatible data lake for long-term archiving and redundancy.
+    * **RDBMS (PostgreSQL):** Structured warehouse for clean, production-ready data.
+* **Transformation:** **dbt (data build tool)** for incremental SQL modeling, turning raw MongoDB documents into analytical Postgres tables.
 * **AI Layer:** **Recommendation Service** using `scikit-learn` (TF-IDF & Cosine Similarity) to find related articles.
 * **UI Layer:** **Streamlit** dashboard for real-time visualization and interaction with the AI engine.
 
@@ -38,13 +38,13 @@ This project doesn't just "move" data; it transforms scattered internet news int
 
 During development, we solved several high-level engineering hurdles:
 
-1. **ML Environment in Docker:**
+1. **Leveraging MongoDB Atlas for Unstructured Data:**
+    * **Problem:** Raw news articles from APIs are often "messy" and lack a strict schema, making direct SQL insertion prone to failure.
+    * **Solution:** Integrated **MongoDB Atlas** as a flexible cloud storage layer. This allowed us to ingest 100% of raw data without loss, providing a stable source for the **dbt transformation layer** to extract and clean specific fields later.
+
+2. **ML Environment in Docker:**
     * **Problem:** The recommendation service lacked mathematical libraries like `scikit-learn`.
     * **Solution:** Customized the `Dockerfile` to include `gcc` and `libpq-dev`, and pre-installed `scikit-learn` and `pandas` to ensure the AI engine runs natively in a containerized environment.
-
-2. **Cross-Schema Data Access & UI Sync:**
-    * **Problem:** The AI service and Streamlit couldn't find the processed tables due to schema naming mismatches.
-    * **Solution:** Refactored SQLAlchemy queries and database connections to explicitly map to the **dbt-generated analytics schema**, ensuring 100% data flow accuracy from Warehouse to UI.
 
 3. **Infrastructure & Disk Space Optimization:**
     * **Problem:** Encountered 99% disk usage due to unreleased file descriptors (ghost files) consuming 45GB+.
@@ -56,14 +56,14 @@ During development, we solved several high-level engineering hurdles:
 
 5. **Incremental Transformation Logic:**
     * **Problem:** Inefficient full-refresh processing of MongoDB data.
-    * **Solution:** Implemented **dbt Incremental Models** that only process new records, drastically reducing latency as the dataset grows.
+    * **Solution:** Implemented **dbt Incremental Models** that only process new records from MongoDB, drastically reducing latency as the dataset grows.
 
 ---
 
 ## 🚀 How to Run
 
 1. **Setup Environment:**
-    * Create a `.env` file with your `NEWS_API_KEY` and database credentials.
+    * Create a `.env` file with your `NEWS_API_KEY`, `MONGO_URI_CLOUD`, and database credentials.
 2. **Initialize & Build:**
     ```bash
     docker-compose up airflow-init
@@ -77,15 +77,15 @@ During development, we solved several high-level engineering hurdles:
 ## 📈 Project Roadmap & Achievements
 
 * [x] Integrate Airflow & Docker orchestration.
-* [x] Implement **dbt Incremental Layer** (Mongo to Postgres).
+* [x] Implement **dbt Incremental Layer** (Mongo Atlas to Postgres).
 * [x] **AI Integration:** Build a Content-Based Recommender Service.
-* [x] Multi-tier storage (MinIO, MongoDB, Postgres).
+* [x] Multi-tier storage (MinIO, MongoDB Atlas, Postgres).
 * [x] **Live Dashboard:** Deployed Streamlit for real-time data visualization.
 * [x] **CI/CD via GitHub Actions** for automated testing and builds.
 * [ ] Implement **Terraform** for Cloud Infrastructure (Next Step).
 
 ---
 
-### 📍 Project Snapshot (Updated: March 4, 2026)
+### 📍 Project Snapshot (Updated: March 5, 2026)
 * **Status:** **Fully Operational Full-Stack Data Product.**
-* **Key Achievement:** Successfully processed **80+ articles** from **13 sources** with real-time similarity scoring and professional UI visualization.
+* **Key Achievement:** Successfully processed **80+ articles** from **13 sources** using a hybrid Cloud/Local architecture with real-time AI similarity scoring.
